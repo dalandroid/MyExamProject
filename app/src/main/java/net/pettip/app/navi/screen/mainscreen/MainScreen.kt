@@ -159,7 +159,10 @@ fun MainScreen(
                     TipStoryScreen(navController = navController)
                 }
                 composable(BottomNav.HomeScreen.route){
-                    HomeScreen(innerPadding = innerPadding)
+                    HomeScreen(
+                        innerPadding = innerPadding,
+                        navController = navController
+                    )
                 }
                 composable(BottomNav.MallScreen.route){
                     MallScreen()

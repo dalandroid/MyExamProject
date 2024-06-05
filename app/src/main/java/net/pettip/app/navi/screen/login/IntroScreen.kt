@@ -31,7 +31,7 @@ fun IntroScreen(
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.White)
 
-    var loginState = false
+    var loginState = true
 
     LaunchedEffect(Unit){
         delay(SplashWaitTime) // 2초 대기

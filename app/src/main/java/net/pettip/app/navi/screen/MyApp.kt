@@ -1,6 +1,9 @@
 package net.pettip.app.navi.screen
 
+import android.app.PictureInPictureParams
 import android.content.Intent
+import android.os.Build
+import android.util.Rational
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -12,6 +15,7 @@ import androidx.navigation.navDeepLink
 import net.pettip.app.navi.screen.login.IntroScreen
 import net.pettip.app.navi.screen.login.LoginScreen
 import net.pettip.app.navi.screen.mainscreen.MainScreen
+import net.pettip.app.navi.screen.map.camera.CameraScreen
 import net.pettip.app.navi.screen.map.NaverMapScreen
 
 /**
@@ -71,4 +75,5 @@ sealed class Screen(val route: String) {
     data object MainScreen : Screen("mainScreen")
     data object LoginScreen : Screen("loginScreen")
     data object NaverMapScreen : Screen("naverMapScreen")
+    data object CameraScreen : Screen("cameraScreen")
 }

@@ -192,6 +192,7 @@ fun NaverMapScreen(
                             Text("법정동: ${address1?:""}\n행정동: ${address2?:""}\n도로명: ${address3?:""}")
                         }
                         is AddressResult.Failure -> Text(state.message)
+                        else -> {}
                     }
                 }
             }

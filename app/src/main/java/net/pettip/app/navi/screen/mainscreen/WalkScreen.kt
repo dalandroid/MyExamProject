@@ -88,9 +88,9 @@ fun WalkScreen(){
                     icon = R.drawable.main_icon,
                     backgroundIcon = R.drawable.main_icon_outline,
                     iconSize = 250.dp,
-                    backgroundIconColor = Color(0xFFFFA726).copy(alpha = 0.9f),
+                    backgroundIconColor = Color(0xFFFFA726).copy(alpha = 0.4f),
                     wiggleColor = Color.White,
-                    percentage = percentage
+                    percentage = targetPercentage
                 )
 
                 Row (modifier = Modifier.padding(bottom = 30.dp)){

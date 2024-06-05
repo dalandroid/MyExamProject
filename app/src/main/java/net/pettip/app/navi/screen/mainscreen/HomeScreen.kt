@@ -1,5 +1,6 @@
 package net.pettip.app.navi.screen.mainscreen
 
+import android.content.Intent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -17,6 +18,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,9 +27,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import net.pettip.app.navi.activity.CameraActivity
+import net.pettip.app.navi.activity.MainActivity
 import net.pettip.app.navi.componet.CustomPagerWithOffset
 import net.pettip.app.navi.componet.Linear
+import net.pettip.app.navi.screen.Screen
 import net.pettip.app.navi.utils.function.shimmerLoadingAnimation
 
 /**
@@ -39,12 +48,14 @@ import net.pettip.app.navi.utils.function.shimmerLoadingAnimation
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(innerPadding: PaddingValues) {
-
+fun HomeScreen(
+    innerPadding: PaddingValues,
+    navController: NavHostController
+) {
     val pagerState1 = rememberPagerState(pageCount = {10})
-    val pagerState2 = rememberPagerState(pageCount = {10})
-    val pagerState3 = rememberPagerState(pageCount = {10})
     val scrollState = rememberScrollState()
+
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -104,11 +115,18 @@ fun HomeScreen(innerPadding: PaddingValues) {
                     }
                 }
             }
-            
-            Box(modifier = Modifier
-                .size(200.dp)
-                .background(Color.LightGray)
-                .shimmerLoadingAnimation(false))
+        }
+
+        Column {
+            Button(
+                onClick = {
+                    //navController.navigate(Screen.CameraScreen.route)
+                    val intent = Intent(context,CameraActivity::class.java)
+                    context.startActivity(intent)
+                }
+            ) {
+                Text(text = "카메라")
+            }
         }
 
     }

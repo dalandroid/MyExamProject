@@ -35,4 +35,12 @@ object MySharedPreference {
     fun getRefreshToken(): String? {
         return sharedPreferences.getString("RefreshToken", null)
     }
+
+    fun setServiceRunning(newValue: Boolean) {
+        sharedPreferences.edit().putBoolean("ServiceRunning", newValue).apply()
+    }
+
+    fun getServiceRunning(): Boolean {
+        return sharedPreferences.getBoolean("ServiceRunning", false)
+    }
 }

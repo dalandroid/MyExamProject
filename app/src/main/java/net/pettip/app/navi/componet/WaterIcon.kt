@@ -1,11 +1,18 @@
 package net.pettip.app.navi.componet
 
+import android.content.Context
+import android.content.Context.SENSOR_SERVICE
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -15,6 +22,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,19 +38,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import androidx.core.content.ContextCompat.getSystemService
 import com.exyte.animatednavbar.utils.noRippleClickable
 import com.exyte.animatednavbar.utils.toPxf
 import kotlinx.coroutines.launch
+import net.pettip.app.navi.utils.function.rememberGravity
+import kotlin.math.PI
+import kotlin.math.acos
+import kotlin.math.pow
 import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 /**
@@ -66,32 +83,8 @@ fun WaterIcon(
     iconSize: Dp = 25.dp,
     percentage: Float
 ){
-    var numberOfClick by remember{ mutableIntStateOf(0) }
-    var targetValue by remember{ mutableStateOf(1f) }
-    val animatedToWave = remember { Animatable(1f) } // 터치시 물결 효과를 위한 float 값
-    val scope = rememberCoroutineScope()
-
     Box(
         modifier = modifier
-            .noRippleClickable {
-                onClick()
-                scope.launch {
-                    if (targetValue == 1f){
-                        val randomValue = Random.nextFloat()*(1.8f- 1.3f) + 1.3f
-                        targetValue = randomValue
-                    }else{
-                        targetValue = 1f
-                    }
-                    animatedToWave.animateTo(
-                        targetValue = targetValue,
-                        animationSpec = tween(durationMillis = 1000)
-                    )
-                    animatedToWave.animateTo(
-                        targetValue = 1f,
-                        animationSpec = tween(durationMillis = 2000)
-                    )
-                }
-            }
     ) {
 
         CustomDrawWithBlendMode(
@@ -106,8 +99,8 @@ fun WaterIcon(
             outlineColor = outlineColor,
             contentDescription = contentDescription,
             size = iconSize,
-            percentage = percentage,
-            animatedValue = animatedToWave.value
+            targetPercentage = percentage,
+            onClick = onClick
         )
 
     }
@@ -124,12 +117,9 @@ fun CustomDrawWithBlendMode(
     size: Dp,
     backgroundIconColor: Color,
     outlineColor: Color,
-    percentage: Float,
-    animatedValue: Float,
+    targetPercentage: Float,
+    onClick: () -> Unit
 ) {
-    val movedVector = movedIcon?.let { ImageVector.vectorResource(id = it) }
-    val movedPainter = movedVector?.let { rememberVectorPainter(image = it) }
-
     val vector = ImageVector.vectorResource(id = icon)
     val painter = rememberVectorPainter(image = vector)
 
@@ -151,8 +141,39 @@ fun CustomDrawWithBlendMode(
         ), label = ""
     )
 
+    val percentage by animateFloatAsState(
+        targetValue = targetPercentage,
+        animationSpec = tween(durationMillis = 1500),
+        label = ""
+    )
+
+    var targetValue by remember{ mutableStateOf(1f) }
+    val animatedToWave = remember { Animatable(1f) } // 터치시 물결 효과를 위한 float 값
+    val scope = rememberCoroutineScope()
+
+    //val xrangle = rememberGravity()
+
     Canvas(
         modifier = modifier
+            .noRippleClickable {
+                onClick()
+                scope.launch {
+                    if (targetValue == 1f) {
+                        val randomValue = Random.nextFloat() * (1.8f - 1.3f) + 1.3f
+                        targetValue = randomValue
+                    } else {
+                        targetValue = 1f
+                    }
+                    animatedToWave.animateTo(
+                        targetValue = targetValue,
+                        animationSpec = tween(durationMillis = 1000)
+                    )
+                    animatedToWave.animateTo(
+                        targetValue = 1f,
+                        animationSpec = tween(durationMillis = 2000)
+                    )
+                }
+            }
             .graphicsLayer(
                 alpha = 0.99f,
                 scaleX = 1f,
@@ -171,15 +192,15 @@ fun CustomDrawWithBlendMode(
         }
 
         val path = Path()
-        val amplitude = 50f*animatedValue // 진폭
-        val frequency = 2f*animatedValue // 주파수
+        val amplitude = 50f*animatedToWave.value // 진폭
+        val frequency = 2f*animatedToWave.value // 주파수
 
         // 시작점을 설정합니다.
         path.moveTo(0f, canvasSize.height*(100f-percentage)/100f)
 
         // sin 함수를 사용하여 물결 모양을 그립니다.
         for (x in 0..canvasSize.width.toInt()) {
-            val y = canvasSize.height*(100f-percentage)/100f+animatedValue + amplitude * sin((x * frequency * Math.PI / canvasSize.width).toFloat() + waveOffset).toFloat()
+            val y = canvasSize.height*(100f-percentage)/100f+animatedToWave.value + amplitude * sin((x * frequency * Math.PI / canvasSize.width).toFloat() + waveOffset).toFloat()
             path.lineTo(x.toFloat(), y)
         }
 
@@ -187,12 +208,25 @@ fun CustomDrawWithBlendMode(
         path.lineTo(x = 0f, y = canvasSize.height)
         path.close()
 
+        /** 로테이션이 필요한 경우 아래 코드 사용 */
+        //rotate(
+        //    degrees = xrangle
+        //){
+        //    drawPath(
+        //        path = path,
+        //        color = wiggleColor,
+        //        style = Fill,
+        //        blendMode = BlendMode.SrcIn
+        //    )
+        //}
+
         drawPath(
             path = path,
             color = wiggleColor,
             style = Fill,
             blendMode = BlendMode.SrcIn
         )
+
 
         with(painter) {
             draw(
