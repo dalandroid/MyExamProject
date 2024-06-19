@@ -1,6 +1,7 @@
 package net.pettip.app.navi.utils.module
 
 import android.content.Context
+import androidx.camera.lifecycle.ProcessCameraProvider
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.NaverMapOptions
@@ -44,4 +45,5 @@ object AppModule {
     fun provideLoginRepository(apiService: ApiService): LoginRepository {
         return LoginRepository(apiService)
     }
+
 }

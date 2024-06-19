@@ -100,6 +100,12 @@ class MapViewModel @Inject constructor(
         _searchToAddress.value = address
     }
 
+    private val _pickArea = MutableStateFlow<String?>(null)
+    val pickArea:StateFlow<String?> = _pickArea.asStateFlow()
+    fun updatePickArea(newValue:String?){
+        _pickArea.value = newValue
+    }
+
     /** map 클릭시 마커 위치의 법정동, 행정동, 도로명 주소  */
     fun getAddress(latLng: LatLng) {
         _addressResult.value = AddressResult.Loading
@@ -274,6 +280,8 @@ class MapViewModel @Inject constructor(
 
     private fun formatRegion(region: NaverAddress.Result.Region?): String {
         if (region == null) return ""
+
+        _pickArea.value = region.area3?.name
 
         return listOf(
             region.area1?.name,

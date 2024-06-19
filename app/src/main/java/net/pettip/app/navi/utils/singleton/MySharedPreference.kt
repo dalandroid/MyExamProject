@@ -43,4 +43,12 @@ object MySharedPreference {
     fun getServiceRunning(): Boolean {
         return sharedPreferences.getBoolean("ServiceRunning", false)
     }
+
+    fun setIsLogin(newValue : Boolean){
+        sharedPreferences.edit().putBoolean("IsLogin",newValue).apply()
+    }
+
+    fun getIsLogin():Boolean{
+        return sharedPreferences.getBoolean("IsLogin", false)
+    }
 }

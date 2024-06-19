@@ -81,6 +81,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:0.33.2-alpha")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("io.coil-kt:coil-video:2.6.0")
+    implementation("com.google.accompanist:accompanist-insets:0.24.13-rc")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
     // ----------- Camera2 implementation -----------
     implementation("androidx.camera:camera-core:1.3.3")

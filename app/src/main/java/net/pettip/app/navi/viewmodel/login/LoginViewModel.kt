@@ -35,7 +35,6 @@ import kotlin.coroutines.resume
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val apiService: ApiService,
     private val loginRepository: LoginRepository
 ) : ViewModel() {
 

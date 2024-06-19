@@ -3,9 +3,11 @@ package net.pettip.app.navi.screen.map.camera
 import android.Manifest
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
-import androidx.camera.view.PreviewView
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
@@ -74,12 +77,14 @@ fun CameraScreen(
     viewModel: CameraViewModel = hiltViewModel(),
     enterPIPMode: () -> Unit,
     exitActivity: () -> Unit,
-    isInPiPMode: Boolean
+    isInPiPMode: Boolean,
+    requestPermission: () -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val currentMode by viewModel.currentMode.collectAsState()
+    val videoState by viewModel.videoState.collectAsState()
     var currentUri by remember{ mutableStateOf<Uri?>(null) }
 
     val systemUiController = rememberSystemUiController()
@@ -93,9 +98,16 @@ fun CameraScreen(
         )
     )
 
-    val previewView = remember { PreviewView(context) }
+    val previewView = viewModel.previewView
+
+    val buttonRound by animateDpAsState(
+        targetValue = if (videoState == VideoState.VIDEO_READY) 40.dp else 12.dp,
+        animationSpec = tween(durationMillis = 500),
+        label = ""
+    )
+
     DisposableEffect(Unit) {
-        viewModel.startCamera(lifecycleOwner, previewView)
+        viewModel.startCamera(lifecycleOwner)
         onDispose { }
     }
 
@@ -185,7 +197,8 @@ fun CameraScreen(
                             Image(
                                 painter = painter,
                                 modifier = Modifier
-                                    .fillMaxSize(),
+                                    .fillMaxSize()
+                                    .background(Color.Black),
                                 contentDescription = "",
                                 contentScale = ContentScale.Crop
                             )
@@ -202,12 +215,13 @@ fun CameraScreen(
                             .background(Color.Black),
                         verticalArrangement = Arrangement.Center
                     ) {
+                        /** 사진,동영상 switch 영역 */
                         Row (
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center
                         ){
                             Button(
-                                onClick = { viewModel.setCaptureMode(CaptureMode.PHOTO, lifecycleOwner, previewView) },
+                                onClick = { viewModel.setCaptureMode(CaptureMode.PHOTO, lifecycleOwner) },
                                 modifier = Modifier.width(80.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     contentColor = Color.Black,
@@ -224,7 +238,7 @@ fun CameraScreen(
                             Spacer(modifier = Modifier.padding(horizontal = 4.dp))
 
                             Button(
-                                onClick = { viewModel.setCaptureMode(CaptureMode.VIDEO, lifecycleOwner, previewView) },
+                                onClick = { viewModel.setCaptureMode(CaptureMode.VIDEO, lifecycleOwner) },
                                 modifier = Modifier.width(80.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     contentColor = Color.Black,
@@ -241,49 +255,101 @@ fun CameraScreen(
 
                         Spacer(modifier = Modifier.padding(top = 12.dp))
 
-                        Row (
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ){
-                            Spacer(modifier = Modifier.size(50.dp))
+                        /** 촬영 영역 */
+                        Crossfade(
+                            targetState = currentUri == null,
+                            label = ""
+                        ) {
+                            if (it){
+                                Row (
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(100.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                ){
+                                    Spacer(modifier = Modifier.size(50.dp))
 
-                            Button(
-                                onClick = {
-                                          if (currentMode == CaptureMode.PHOTO){
-                                              viewModel.takePhoto(context = context, currentUri = {newValue -> currentUri = newValue})
-                                          }
-                                },
-                                shape = CircleShape,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (currentMode == CaptureMode.VIDEO) Color.Red else Color.White
-                                ),
-                                modifier = Modifier
-                                    .padding(horizontal = 20.dp)
-                                    .size(80.dp)
-                            ) {
+                                    Button(
+                                        onClick = {
+                                            if (currentMode == CaptureMode.PHOTO){
+                                                viewModel.takePhoto(currentUri = {newValue -> currentUri = newValue})
+                                            }else if(currentMode == CaptureMode.VIDEO){
+                                                if (!Settings.canDrawOverlays(context)){
+                                                    /** 화면 위에 그리기 퍼미션 체크 */
+                                                    requestPermission()
+                                                }else{
+                                                    viewModel.onRecord()
+                                                }
+                                            }
+                                        },
+                                        shape = if (currentMode == CaptureMode.PHOTO) CircleShape else RoundedCornerShape(buttonRound),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (currentMode == CaptureMode.VIDEO) Color.Red else Color.White
+                                        ),
+                                        modifier = Modifier
+                                            .padding(horizontal = 20.dp)
+                                            .size(80.dp)
+                                    ) {
 
-                            }
+                                    }
 
-                            Box(
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .background(Color.Transparent, CircleShape)
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        enterPIPMode()
-                                    },
-                                contentAlignment = Alignment.Center
-                            ){
-                                Icon(
-                                    imageVector = Icons.Default.Refresh,
-                                    tint = Color.White,
-                                    contentDescription =""
-                                )
+                                    Box(
+                                        modifier = Modifier
+                                            .size(50.dp)
+                                            .background(Color.Transparent, CircleShape)
+                                            .clip(CircleShape)
+                                            .clickable {
+                                                enterPIPMode()
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ){
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            tint = Color.White,
+                                            contentDescription =""
+                                        )
+                                    }
+                                }
+                            }else{
+                                Row (
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(100.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable {
+                                                viewModel.deleteFileFromContentUri(currentUri, context)
+                                                currentUri = null
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ){
+                                        Text(
+                                            text = "취소",
+                                            color = Color.White
+                                        )
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable {
+                                                currentUri = null
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ){
+                                        Text(
+                                            text = "선택",
+                                            color = Color.White
+                                        )
+                                    }
+                                }
                             }
                         }
+
                     }
                 }
             }// col

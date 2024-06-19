@@ -1,9 +1,6 @@
 package net.pettip.app.navi.screen
 
-import android.app.PictureInPictureParams
 import android.content.Intent
-import android.os.Build
-import android.util.Rational
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -15,8 +12,12 @@ import androidx.navigation.navDeepLink
 import net.pettip.app.navi.screen.login.IntroScreen
 import net.pettip.app.navi.screen.login.LoginScreen
 import net.pettip.app.navi.screen.mainscreen.MainScreen
-import net.pettip.app.navi.screen.map.camera.CameraScreen
 import net.pettip.app.navi.screen.map.NaverMapScreen
+import net.pettip.app.navi.screen.test.TestBSMapScreen
+import net.pettip.app.navi.screen.test.TestBubbleScreen
+import net.pettip.app.navi.screen.test.TestLazyVerticalGrid
+import net.pettip.app.navi.screen.test.TestPagerScreen
+import net.pettip.app.navi.screen.test.TestShareScreen
 
 /**
  * @Project     : PetTip-Android
@@ -67,6 +68,24 @@ fun MyApp(modifier: Modifier = Modifier){
         composable("naverMapScreen"){
             NaverMapScreen()
         }
+
+        /** Test 용 */
+        composable("testBSMapScreen"){
+            TestBSMapScreen()
+        }
+        composable("testPagerScreen"){
+            TestPagerScreen()
+        }
+        composable("testLazyVerticalGrid"){
+            TestLazyVerticalGrid()
+        }
+        composable("testBubbleScreen"){
+            TestBubbleScreen()
+        }
+        composable("testShareScreen"){
+            TestShareScreen()
+        }
+        /** Test 용 */
     }
 }
 
@@ -75,5 +94,13 @@ sealed class Screen(val route: String) {
     data object MainScreen : Screen("mainScreen")
     data object LoginScreen : Screen("loginScreen")
     data object NaverMapScreen : Screen("naverMapScreen")
-    data object CameraScreen : Screen("cameraScreen")
+
+
+
+
+    data object TestBSMapScreen : Screen("testBSMapScreen")
+    data object TestPagerScreen : Screen("testPagerScreen")
+    data object TestLazyVerticalGrid : Screen("testLazyVerticalGrid")
+    data object TestBubbleScreen : Screen("testBubbleScreen")
+    data object TestShareScreen : Screen("testShareScreen")
 }

@@ -113,8 +113,8 @@ fun CustomBottomSheet(
     val screenHeight = configuration.screenHeightDp
     val focusManager = LocalFocusManager.current
 
-    var bottomHeight = getAdaptiveHeight()
-    var statusBarHeight = getStatusBarHeight()
+    val bottomHeight = getAdaptiveHeight()
+    val statusBarHeight = getStatusBarHeight()
 
     LaunchedEffect(showBottomSheet) {
         if (!sheetState){

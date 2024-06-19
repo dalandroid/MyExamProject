@@ -123,6 +123,7 @@ fun NaverMapScreen(
             )
         )
     }
+
     var mapUiSettings by remember {
         mutableStateOf(
             MapUiSettings(
