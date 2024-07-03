@@ -1,9 +1,10 @@
 package net.pettip.app.navi.screen.login
 
+import android.annotation.SuppressLint
 import android.credentials.GetCredentialException
+import android.os.Build
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,12 +26,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialResponse
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import kotlinx.coroutines.launch
 import net.pettip.app.navi.R
 import net.pettip.app.navi.componet.ButtonSingleTap
@@ -40,6 +44,8 @@ import net.pettip.app.navi.screen.Screen
 import net.pettip.app.navi.ui.theme.design_login_kakaobtn
 import net.pettip.app.navi.ui.theme.design_login_naverbtn
 import net.pettip.app.navi.viewmodel.login.LoginViewModel
+import java.math.BigInteger
+import java.security.SecureRandom
 
 /**
  * @Project     : PetTip-Android
@@ -49,6 +55,8 @@ import net.pettip.app.navi.viewmodel.login.LoginViewModel
  * @description : net.pettip.app.navi.screen.login
  * @see net.pettip.app.navi.screen.login.LoginScreen
  */
+
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
 fun LoginScreen(
     modifier:Modifier = Modifier,
@@ -58,22 +66,62 @@ fun LoginScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-        .requestIdToken("985887161836-gj9pqql898d85483bc1ik53a5t1kg6du.apps.googleusercontent.com")
-        .requestServerAuthCode("985887161836-gj9pqql898d85483bc1ik53a5t1kg6du.apps.googleusercontent.com")
-        .requestEmail()
+    /** 여기부터 credential 을 이용한 Login */
+    fun generateNonce(size: Int = 32): String {
+        val random = SecureRandom()
+        val nonce = ByteArray(size)
+        random.nextBytes(nonce)
+        return BigInteger(1, nonce).toString(16)
+    }
+
+    val credentialManager = CredentialManager.create(context)
+
+    /** 바텀 시트를 이용한 로그인 */
+    val googleIdOption : GetGoogleIdOption = GetGoogleIdOption.Builder()
+        .setFilterByAuthorizedAccounts(true)
+        .setServerClientId("985887161836-gj9pqql898d85483bc1ik53a5t1kg6du.apps.googleusercontent.com")
+        .setAutoSelectEnabled(true)
+        .setNonce(generateNonce())
         .build()
 
-    val mGoogleSignInClient = GoogleSignIn.getClient(context,gso)
-    val googleAuthLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+    /** 팝업 창을 이용한 로그인 */
+    val signInWithGoogleOption: GetSignInWithGoogleOption = GetSignInWithGoogleOption
+        .Builder("985887161836-gj9pqql898d85483bc1ik53a5t1kg6du.apps.googleusercontent.com")
+        .setNonce(generateNonce())
+        .build()
 
-        try {
-            val account = task.getResult(ApiException::class.java)
-            Log.d("LOG",account.email.toString()+account.id.toString())
+    /** credential option 의 변경에 따라 달라짐 */
+    val request: androidx.credentials.GetCredentialRequest = androidx.credentials.GetCredentialRequest.Builder()
+        .addCredentialOption(signInWithGoogleOption)
+        .build()
 
-        } catch (e: ApiException){
 
+    fun handleSignIn(result: GetCredentialResponse) {
+        // Handle the successfully returned credential.
+        when (val credential = result.credential) {
+            is CustomCredential -> {
+                if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                    try {
+                        // Use googleIdTokenCredential and extract id to validate and
+                        // authenticate on your server.
+                        val googleIdTokenCredential = GoogleIdTokenCredential
+                            .createFrom(credential.data)
+                        Log.d("GOOGLE", "id:${googleIdTokenCredential.id}, ${googleIdTokenCredential.givenName} ${googleIdTokenCredential}")
+
+                    } catch (e: GoogleIdTokenParsingException) {
+                        Log.e("GOOGLE", "Received an invalid google id token response", e)
+                    }
+                }
+                else {
+                    // Catch any unrecognized credential type here.
+                    Log.e("GOOGLE", "Unexpected type of credential")
+                }
+            }
+
+            else -> {
+                // Catch any unrecognized credential type here.
+                Log.e("GOOGLE", "Unexpected type of credential")
+            }
         }
     }
 
@@ -194,8 +242,15 @@ fun LoginScreen(
             delayTime = 1500,
             onClick = {
                 loginViewModel.viewModelScope.launch {
-                    val signInIntent = mGoogleSignInClient.signInIntent
-                    googleAuthLauncher.launch(signInIntent)
+                    try {
+                        val result = credentialManager.getCredential(
+                            context = context,
+                            request = request
+                        )
+                        handleSignIn(result)
+                    }catch (e : GetCredentialException){
+                        Log.d("GOOGLE",e.message.toString())
+                    }
                 }
             }
         ) {

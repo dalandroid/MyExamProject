@@ -11,13 +11,17 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import net.pettip.app.navi.screen.login.IntroScreen
 import net.pettip.app.navi.screen.login.LoginScreen
+import net.pettip.app.navi.screen.login.SplashScreen
 import net.pettip.app.navi.screen.mainscreen.MainScreen
 import net.pettip.app.navi.screen.map.NaverMapScreen
+import net.pettip.app.navi.screen.test.TestAgreementScreen
 import net.pettip.app.navi.screen.test.TestBSMapScreen
 import net.pettip.app.navi.screen.test.TestBubbleScreen
 import net.pettip.app.navi.screen.test.TestLazyVerticalGrid
 import net.pettip.app.navi.screen.test.TestPagerScreen
+import net.pettip.app.navi.screen.test.TestPetRegScreen
 import net.pettip.app.navi.screen.test.TestShareScreen
+import net.pettip.app.navi.screen.test.TestWalkScreen
 
 /**
  * @Project     : PetTip-Android
@@ -46,16 +50,18 @@ fun MyApp(modifier: Modifier = Modifier){
             )
         ) {
             IntroScreen(
-                modifier= modifier,
-                onLogin = {
-                    navController.navigate(Screen.MainScreen.route){
+                init = {
+                    navController.navigate(Screen.SplashScreen.route){
                         popUpTo(Screen.Intro.route){inclusive = true}
                     } },
-                unLogin = {
-                    navController.navigate(Screen.LoginScreen.route){
+                noInit = {
+                    navController.navigate(Screen.MainScreen.route){
                         popUpTo(Screen.Intro.route){inclusive = true}
                     } }
             )
+        }
+        composable("splashScreen"){
+            SplashScreen(navController = navController)
         }
         
         composable("mainScreen"){
@@ -85,6 +91,15 @@ fun MyApp(modifier: Modifier = Modifier){
         composable("testShareScreen"){
             TestShareScreen()
         }
+        composable("testAgreementScreen"){
+            TestAgreementScreen()
+        }
+        composable("testPetRegScreen"){
+            TestPetRegScreen()
+        }
+        composable("testWalkScreen"){
+            TestWalkScreen()
+        }
         /** Test 용 */
     }
 }
@@ -94,6 +109,7 @@ sealed class Screen(val route: String) {
     data object MainScreen : Screen("mainScreen")
     data object LoginScreen : Screen("loginScreen")
     data object NaverMapScreen : Screen("naverMapScreen")
+    data object SplashScreen : Screen("splashScreen")
 
 
 
@@ -103,4 +119,7 @@ sealed class Screen(val route: String) {
     data object TestLazyVerticalGrid : Screen("testLazyVerticalGrid")
     data object TestBubbleScreen : Screen("testBubbleScreen")
     data object TestShareScreen : Screen("testShareScreen")
+    data object TestAgreementScreen : Screen("testAgreementScreen")
+    data object TestPetRegScreen : Screen("testPetRegScreen")
+    data object TestWalkScreen : Screen("testWalkScreen")
 }

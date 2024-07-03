@@ -155,16 +155,39 @@ fun HomeScreen(
                 }
 
                 Button(
-                    onClick = { navController.navigate(Screen.TestPagerScreen.route) },
+                    onClick = { navController.navigate(Screen.TestAgreementScreen.route) },
                     modifier = Modifier.pressClickEffect()
                 ) {
-                    Text(text = "")
+                    Text(text = "Agreement")
                 }
 
                 Button(
-                    onClick = {
-                        val intent = Intent(context,CameraActivity::class.java)
-                        context.startActivity(intent) },
+                    onClick = { navController.navigate(Screen.TestPetRegScreen.route) },
+                    modifier = Modifier.pressClickEffect()
+                ) {
+                    Text(text = "Pet Reg")
+                }
+            }
+
+            Row (
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            ){
+                Button(
+                    onClick = { navController.navigate(Screen.LoginScreen.route) },
+                    modifier = Modifier.pressClickEffect()
+                ) {
+                    Text(text = "login")
+                }
+
+                Button(
+                    onClick = { navController.navigate(Screen.TestWalkScreen.route) },
+                    modifier = Modifier.pressClickEffect()
+                ) {
+                    Text(text = "walk")
+                }
+
+                Button(
+                    onClick = { },
                     modifier = Modifier.pressClickEffect()
                 ) {
                     Text(text = "")

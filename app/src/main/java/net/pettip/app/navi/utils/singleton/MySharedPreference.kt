@@ -51,4 +51,12 @@ object MySharedPreference {
     fun getIsLogin():Boolean{
         return sharedPreferences.getBoolean("IsLogin", false)
     }
+
+    fun setIsInit(newValue : Boolean){
+        sharedPreferences.edit().putBoolean("IsInit",newValue).apply()
+    }
+
+    fun getIsInit():Boolean{
+        return sharedPreferences.getBoolean("IsInit", true)
+    }
 }

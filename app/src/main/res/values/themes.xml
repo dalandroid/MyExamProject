@@ -4,16 +4,18 @@
 
     <style name="Theme.Navi" parent="android:Theme.Material.Light.NoActionBar" />
 
-    <style name="Theme.Pettip.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_dummy_splash</item>
-        <item name="postSplashScreenTheme">@style/Theme.Pettip</item>
-
-    </style>
-
     <style name="Theme.Pettip" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
-
     </style>
+
+    <style name="AppTheme.SplashScreen" parent="Theme.SplashScreen">
+        <item name="android:statusBarColor">@color/black</item>
+        <item name="android:navigationBarColor">@color/black</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@drawable/main_icon</item>
+        <item name="windowSplashScreenBackground">@color/black</item>
+        <item name="postSplashScreenTheme">@style/Theme.Design.NoActionBar</item>
+    </style>
+
 </resources>

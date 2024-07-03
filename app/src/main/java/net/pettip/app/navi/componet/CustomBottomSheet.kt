@@ -21,7 +21,11 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,10 +36,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -45,6 +52,7 @@ import androidx.compose.runtime.CompositionContext
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCompositionContext
@@ -56,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.input.pointer.pointerInput
@@ -71,6 +80,7 @@ import androidx.compose.ui.platform.ViewRootForInspector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.OnApplyWindowInsetsListener
@@ -84,9 +94,11 @@ import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.exyte.animatednavbar.utils.toDp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.math.roundToInt
 
 /**
  * @Project     : PetTip-Android
@@ -102,11 +114,14 @@ fun CustomBottomSheet(
     onDismiss: () -> Unit,
     showBottomSheet: Boolean,
     maxHeight:Float = 0.5f,
-    content: @Composable ColumnScope.() -> Unit  = {},
     contentColor: Color = Color.White,
     cornerShape: RoundedCornerShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-    navigationBarPadding : Boolean = true
+    navigationBarPadding : Boolean = true,
+    draggable:Boolean = false,
+    content: @Composable ColumnScope.() -> Unit  = {},
 ) {
+    var isShow by remember{ mutableStateOf(false) }
+
     var sheetState by remember{ mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
@@ -116,14 +131,34 @@ fun CustomBottomSheet(
     val bottomHeight = getAdaptiveHeight()
     val statusBarHeight = getStatusBarHeight()
 
+    var offsetY by remember { mutableFloatStateOf(0f) }
+
     LaunchedEffect(showBottomSheet) {
-        if (!sheetState){
-            sheetState = showBottomSheet
+        if (!sheetState && showBottomSheet){
+            sheetState = true
+            isShow = true
             focusManager.clearFocus()
+        }else if (sheetState && !showBottomSheet){
+            sheetState = false
+            delay(250)
+            isShow = false
+            onDismiss()
         }
     }
 
-    if (showBottomSheet){
+    LaunchedEffect(isShow) {
+        if (!isShow){
+            offsetY = 0f
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            isShow = false
+        }
+    }
+
+    if (showBottomSheet||isShow){
         FullScreenPopup{
             Scrim(
                 color = androidx.compose.material.ModalBottomSheetDefaults.scrimColor,
@@ -131,6 +166,7 @@ fun CustomBottomSheet(
                     scope.launch {
                         sheetState = false
                         delay(250)
+                        isShow = false
                         onDismiss()
                     }
                 },
@@ -139,6 +175,7 @@ fun CustomBottomSheet(
 
             Box(
                 modifier = Modifier
+                    .offset { IntOffset(0, offsetY.roundToInt()) }
                     .fillMaxSize()
                     .statusBarsPadding()
                     .padding(top = statusBarHeight),
@@ -170,6 +207,47 @@ fun CustomBottomSheet(
                                     .systemBarsPadding()
                                     .padding(bottom = bottomHeight)
                             ){
+                                if (draggable){
+                                    Box(modifier = Modifier
+                                        .padding(top = 30.dp)
+                                        .width(100.dp)
+                                        .height(5.dp)
+                                        .background(Color.LightGray)
+                                        .align(Alignment.CenterHorizontally)
+                                        .draggable(
+                                            orientation = Orientation.Vertical,
+                                            state = rememberDraggableState { delta ->
+                                                offsetY = (offsetY + delta).coerceAtLeast(0f)
+                                                if (offsetY > 800f) {
+                                                    scope.launch {
+                                                        sheetState = false
+                                                        delay(250)
+                                                        isShow = false
+                                                        onDismiss()
+                                                        offsetY = 0f
+                                                    }
+                                                }
+                                            },
+                                            enabled = true,
+                                            onDragStarted = { startedPosition: Offset ->
+                                                Log.d("DRAG", startedPosition.toString())
+                                            },
+                                            onDragStopped = { velocity: Float ->
+                                                if (velocity>4000f){
+                                                    scope.launch {
+                                                        sheetState = false
+                                                        delay(250)
+                                                        isShow = false
+                                                        onDismiss()
+                                                        offsetY = 0f
+                                                    }
+                                                }
+                                            },
+                                            startDragImmediately = true
+                                        )
+                                    )
+                                }
+
                                 content()
                             }
                         }

@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +54,8 @@ import com.exyte.animatednavbar.animation.indendshape.ShapeCornerRadius
 import kotlinx.coroutines.launch
 import net.pettip.app.navi.R
 import net.pettip.app.navi.componet.NavigationDrawer
+import net.pettip.app.navi.screen.Screen
+import net.pettip.app.navi.utils.singleton.MySharedPreference
 
 /**
  * @Project     : PetTip-Android
