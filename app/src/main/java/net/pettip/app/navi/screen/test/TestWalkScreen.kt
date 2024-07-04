@@ -1,10 +1,20 @@
 package net.pettip.app.navi.screen.test
 
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapShader
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Shader
 import android.location.Location
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -17,10 +27,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.geometry.LatLngBounds
 import com.naver.maps.map.compose.ArrowheadPathOverlay
 import com.naver.maps.map.compose.CircleOverlay
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
@@ -35,8 +47,11 @@ import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.PathOverlay
 import com.naver.maps.map.compose.PolygonOverlay
 import com.naver.maps.map.compose.rememberFusedLocationSource
+import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.overlay.PathOverlay
+import net.pettip.app.navi.activity.CameraActivity
 import net.pettip.app.navi.screen.map.NaverMapComponent
+import net.pettip.app.navi.screen.map.camera.CameraScreen
 import net.pettip.app.navi.viewmodel.map.MapViewModel
 
 /**
@@ -80,9 +95,13 @@ fun TestWalkScreen(
         )
     }
 
+    var bitmap by remember{ mutableStateOf<Bitmap?>(null) }
+
     var path by remember{ mutableStateOf(listOf<LatLng>()) }
 
     var locationList by remember { mutableStateOf(listOf<Location>()) }
+
+    val context = LocalContext.current
 
     DisposableEffect(Unit) {
 
@@ -124,9 +143,37 @@ fun TestWalkScreen(
                     width = 8.dp
                 )
             }
-            if (path.isNotEmpty()){
-                //GroundOverlay(bounds = LatLng(path.first().latitude,path.first().longitude))
+            if (path.isNotEmpty() && bitmap != null){
+                Marker(
+                    icon = OverlayImage.fromBitmap(bitmap!!)
+                )
             }
         }
+
+        Button(
+            onClick = { 
+                val intent = Intent(context, CameraActivity::class.java)
+                context.startActivity(intent) },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
+        ) {
+            Text(text = "카메라", color = Color.White)
+        }
     }
+}
+
+fun getCircularBitmap(bitmap: Bitmap): Bitmap {
+    val size = Math.min(bitmap.width, bitmap.height)
+
+    val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(output)
+
+    val paint = Paint()
+    val shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+    paint.shader = shader
+    paint.isAntiAlias = true
+
+    val radius = size / 2f
+    canvas.drawCircle(radius, radius, radius, paint)
+
+    return output
 }

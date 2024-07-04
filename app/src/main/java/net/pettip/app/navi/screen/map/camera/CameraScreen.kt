@@ -75,10 +75,10 @@ import net.pettip.app.navi.utils.singleton.MySharedPreference
 @Composable
 fun CameraScreen(
     viewModel: CameraViewModel = hiltViewModel(),
-    enterPIPMode: () -> Unit,
-    exitActivity: () -> Unit,
-    isInPiPMode: Boolean,
-    requestPermission: () -> Unit
+    enterPIPMode: () -> Unit = {},
+    exitActivity: () -> Unit = {},
+    isInPiPMode: Boolean = false,
+    requestPermission: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
