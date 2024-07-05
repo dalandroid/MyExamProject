@@ -1,5 +1,6 @@
 package net.pettip.app.navi.screen.map
 
+import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -25,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -61,6 +63,7 @@ import com.naver.maps.map.compose.PolygonOverlay
 import com.naver.maps.map.compose.rememberFusedLocationSource
 import kotlinx.coroutines.async
 import net.pettip.app.navi.componet.ExpandingCircleBox
+import net.pettip.app.navi.utils.service.LocationService
 import net.pettip.app.navi.viewmodel.map.AddressResult
 import net.pettip.app.navi.viewmodel.map.MapViewModel
 

@@ -12,7 +12,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -52,6 +55,8 @@ import com.naver.maps.map.overlay.PathOverlay
 import net.pettip.app.navi.activity.CameraActivity
 import net.pettip.app.navi.screen.map.NaverMapComponent
 import net.pettip.app.navi.screen.map.camera.CameraScreen
+import net.pettip.app.navi.utils.service.LocationService
+import net.pettip.app.navi.utils.service.RecordingService
 import net.pettip.app.navi.viewmodel.map.MapViewModel
 
 /**
@@ -157,6 +162,23 @@ fun TestWalkScreen(
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
         ) {
             Text(text = "카메라", color = Color.White)
+        }
+
+        Button(
+            onClick = {
+                // service 시작/종료 영역
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 30.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Blue
+            )
+        ) {
+            Text(
+                text = "Start Location Service",
+                color = Color.White
+            )
         }
     }
 }

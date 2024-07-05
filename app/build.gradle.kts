@@ -75,6 +75,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:2.8.2")
     implementation("androidx.window:window:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     val hiltVersion = "2.50"
 
     implementation("androidx.core:core-ktx:1.13.1")
