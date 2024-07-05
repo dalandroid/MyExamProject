@@ -22,12 +22,31 @@ android {
         }
     }
 
+    //buildTypes {
+    //    release {
+    //        isMinifyEnabled = false
+    //        proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+    //    }
+    //}
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro", "retrofit2.pro", "proguard.cfg"
+            )
+        }
+        debug {
+            //isMinifyEnabled = true
+            //isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro", "retrofit2.pro", "proguard.cfg"
+            )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -43,7 +62,11 @@ android {
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/NOTICE"
+            excludes += "/META-INF/LICENSE"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/NOTICE.txt"
         }
     }
 }
@@ -117,6 +140,8 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.2.2")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
 
+    implementation("com.google.api-client:google-api-client:1.32.1")
+    implementation("com.google.api-client:google-api-client-android:1.32.1")
 
     //Hilt Navigation
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")

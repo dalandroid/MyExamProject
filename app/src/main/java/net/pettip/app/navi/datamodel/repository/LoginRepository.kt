@@ -1,5 +1,6 @@
 package net.pettip.app.navi.datamodel.repository
 
+import android.util.Log
 import kotlinx.coroutines.suspendCancellableCoroutine
 import net.pettip.app.navi.datamodel.data.login.LoginReq
 import net.pettip.app.navi.datamodel.data.login.LoginRes

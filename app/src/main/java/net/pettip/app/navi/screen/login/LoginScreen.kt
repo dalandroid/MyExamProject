@@ -36,7 +36,13 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.pettip.app.navi.R
 import net.pettip.app.navi.componet.ButtonSingleTap
 import net.pettip.app.navi.componet.LoadingState
@@ -46,6 +52,7 @@ import net.pettip.app.navi.ui.theme.design_login_naverbtn
 import net.pettip.app.navi.viewmodel.login.LoginViewModel
 import java.math.BigInteger
 import java.security.SecureRandom
+import java.util.Collections
 
 /**
  * @Project     : PetTip-Android
@@ -92,7 +99,7 @@ fun LoginScreen(
 
     /** credential option 의 변경에 따라 달라짐 */
     val request: androidx.credentials.GetCredentialRequest = androidx.credentials.GetCredentialRequest.Builder()
-        .addCredentialOption(signInWithGoogleOption)
+        .addCredentialOption(googleIdOption)
         .build()
 
 
@@ -102,11 +109,27 @@ fun LoginScreen(
             is CustomCredential -> {
                 if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                     try {
-                        // Use googleIdTokenCredential and extract id to validate and
-                        // authenticate on your server.
-                        val googleIdTokenCredential = GoogleIdTokenCredential
-                            .createFrom(credential.data)
-                        Log.d("GOOGLE", "id:${googleIdTokenCredential.id}, ${googleIdTokenCredential.givenName} ${googleIdTokenCredential}")
+                        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+
+                        /** Google Id Token **/
+                        val idToken = googleIdTokenCredential.idToken
+                        val verifier = GoogleIdTokenVerifier.Builder(NetHttpTransport(),GsonFactory())
+                            .setAudience(Collections.singletonList("985887161836-gj9pqql898d85483bc1ik53a5t1kg6du.apps.googleusercontent.com"))
+                            .build()
+
+                        CoroutineScope(Dispatchers.Main).launch {
+                            try {
+                                val googleIdToken = withContext(Dispatchers.IO){
+                                    verifier.verify(idToken)
+                                }
+                                googleIdToken?.let {
+                                    // 해당 영역에서 Unique ID
+                                    Log.d("LOG",it.payload.subject)
+                                }
+                            }catch (e:Exception){
+                                Log.e("GOOGLE","Token Error : ${e.message}")
+                            }
+                        }
 
                     } catch (e: GoogleIdTokenParsingException) {
                         Log.e("GOOGLE", "Received an invalid google id token response", e)
@@ -196,6 +219,7 @@ fun LoginScreen(
                     if (isSuccess){
                         val result = loginViewModel.onLogin()
                         if (result == 0){
+                            Log.d("LOG","0")
                             /** 로그인 성공 status == 200 */
                             navController.navigate(Screen.MainScreen.route){
                                 popUpTo(0)
@@ -242,14 +266,26 @@ fun LoginScreen(
             delayTime = 1500,
             onClick = {
                 loginViewModel.viewModelScope.launch {
-                    try {
-                        val result = credentialManager.getCredential(
-                            context = context,
-                            request = request
-                        )
-                        handleSignIn(result)
-                    }catch (e : GetCredentialException){
-                        Log.d("GOOGLE",e.message.toString())
+                    LoadingState.show()
+                    val isSuccess = loginViewModel.googleLogin(context)
+                    if (isSuccess){
+                        val result = loginViewModel.onLogin()
+                        if (result == 0){
+                            Log.d("LOG","0")
+                            /** 로그인 성공 status == 200 */
+                            navController.navigate(Screen.MainScreen.route){
+                                popUpTo(0)
+                            }
+                        }else if(result == 1){
+                            /** 로그인 실패 status != 200 */
+                        }else if(result == 3){
+                            /** 로그인 실패 status == 403 */
+                        }else{
+                            /** 로그인 실패 통신실패 */
+                        }
+                        LoadingState.hide()
+                    }else{
+                        LoadingState.hide()
                     }
                 }
             }

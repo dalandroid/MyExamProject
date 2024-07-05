@@ -32,3 +32,9 @@
 -keep class androidx.credentials.playservices.** {
   *;
 }
+
+# To use naver login with proguard
+-keep public class com.navercorp.nid.oauth.** {*;}
+
+# To use naver login profile with proguard
+-keep public class com.navercorp.nid.profile.data.** {*;}
