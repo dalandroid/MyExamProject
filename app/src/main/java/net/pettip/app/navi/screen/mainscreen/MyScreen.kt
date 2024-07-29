@@ -1,6 +1,9 @@
 package net.pettip.app.navi.screen.mainscreen
 
 import android.util.Log
+import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -18,7 +21,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
@@ -50,12 +55,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.exyte.animatednavbar.animation.indendshape.IndentAnimation
 import kotlinx.coroutines.launch
 import net.pettip.app.navi.componet.CustomBottomSheet
 import net.pettip.app.navi.utils.function.customShape
+import net.pettip.app.navi.utils.singleton.WebViewSingleton
 
 /**
  * @Project     : PetTip-Android
@@ -69,36 +77,24 @@ import net.pettip.app.navi.utils.function.customShape
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MyScreen(innerPadding: PaddingValues) {
-    var showBottomSheet by remember { mutableStateOf(false) }
-    var text by remember{ mutableStateOf("") }
-
-    
-    val scrollState = rememberScrollState()
-
-    val list = listOf("페이지1","페이지2")
-    
-    val scope = rememberCoroutineScope()
-    val pagerState = rememberPagerState(pageCount = {list.size})
-    val selectedIndex = pagerState.currentPage
-    
-
     Column(
         modifier = Modifier
-            .imePadding()
+            .navigationBarsPadding()
+            .statusBarsPadding()
             .fillMaxSize()
-            .verticalScroll(scrollState)
     ) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .background(color = Color.Magenta, shape = customShape(250f))
-                .clip(customShape(250f)),
-            contentAlignment = Alignment.TopCenter
-        ) {
-
-        }
+        val context = LocalContext.current
+        AndroidView(
+            factory = {
+                val webView = WebViewSingleton.getWebView(context)
+                // 이미 부모가 있다면 제거
+                (webView.parent as? ViewGroup)?.removeView(webView)
+                webView
+            } ,
+            update = {
+                it.loadUrl("https://www.naver.com/")
+            }
+        )
     }
 }
 

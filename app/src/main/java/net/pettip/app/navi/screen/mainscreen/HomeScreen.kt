@@ -187,10 +187,10 @@ fun HomeScreen(
                 }
 
                 Button(
-                    onClick = { },
+                    onClick = { navController.navigate(Screen.TestGalleryScreen.route) },
                     modifier = Modifier.pressClickEffect()
                 ) {
-                    Text(text = "")
+                    Text(text = "gallery")
                 }
             }
         }

@@ -44,6 +44,14 @@ object MySharedPreference {
         return sharedPreferences.getBoolean("ServiceRunning", false)
     }
 
+    fun setGPXFileName(newValue: String?) {
+        sharedPreferences.edit().putString("GPXFileName", newValue).apply()
+    }
+
+    fun getGPXFileName(): String? {
+        return sharedPreferences.getString("GPXFileName", null)
+    }
+
     fun setIsLogin(newValue : Boolean){
         sharedPreferences.edit().putBoolean("IsLogin",newValue).apply()
     }

@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 
 /**
  * @Project     : PetTip-Android
@@ -21,14 +22,23 @@ object LoadGallery {
     /** gallery 에서 사진 uri 리스트를 받아오는 함수 */
     fun loadPhotos(context: Context): List<Uri> {
         val uriList = mutableListOf<Uri>()
-        val projection = arrayOf(MediaStore.Images.Media._ID)
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.DATA // 파일 경로를 가져오기 위해 추가
+        )
+
+        val selection = "${MediaStore.Images.Media.DATA} LIKE ?"
+        val selectionArgs = arrayOf("%/Pictures/%")
+
+        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
         val cursor = context.contentResolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             projection,
-            null,
-            null,
-            null
+            selection,
+            selectionArgs,
+            sortOrder
         )
+
         cursor?.use { c ->
             val idColumn = c.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             while (c.moveToNext()) {

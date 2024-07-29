@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,6 +19,7 @@ import net.pettip.app.navi.screen.map.NaverMapScreen
 import net.pettip.app.navi.screen.test.TestAgreementScreen
 import net.pettip.app.navi.screen.test.TestBSMapScreen
 import net.pettip.app.navi.screen.test.TestBubbleScreen
+import net.pettip.app.navi.screen.test.TestGalleryScreen
 import net.pettip.app.navi.screen.test.TestLazyVerticalGrid
 import net.pettip.app.navi.screen.test.TestPagerScreen
 import net.pettip.app.navi.screen.test.TestPetRegScreen
@@ -32,8 +35,10 @@ import net.pettip.app.navi.screen.test.TestWalkScreen
  * @see net.pettip.app.navi.MyApp
  */
 @Composable
-fun MyApp(modifier: Modifier = Modifier){
-    val navController = rememberNavController()
+fun MyApp(
+    modifier: Modifier = Modifier,
+    navController: NavHostController
+){
 
     NavHost(
         navController = navController,
@@ -100,6 +105,9 @@ fun MyApp(modifier: Modifier = Modifier){
         composable("testWalkScreen"){
             TestWalkScreen()
         }
+        composable("testGalleryScreen"){
+            TestGalleryScreen()
+        }
         /** Test 용 */
     }
 }
@@ -122,4 +130,5 @@ sealed class Screen(val route: String) {
     data object TestAgreementScreen : Screen("testAgreementScreen")
     data object TestPetRegScreen : Screen("testPetRegScreen")
     data object TestWalkScreen : Screen("testWalkScreen")
+    data object TestGalleryScreen : Screen("testGalleryScreen")
 }
